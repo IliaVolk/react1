@@ -5,6 +5,8 @@ var gulp = require('gulp');
 var connect = require('gulp-connect');
 var concat = require('gulp-concat');
 var sort = require('gulp-sort');
+var addsrc = require('gulp-add-src');
+
 // add required packages
 gulp.task('connect', function() {
     connect.server({
@@ -16,7 +18,7 @@ gulp.task('connect', function() {
 
 
 gulp.task('concatJs', function() {
-    return gulp.src('src/js/**/*.js')
+    return gulp.src('src/js/react/**/*.js')
         .pipe(sort({
             comparator: function(file1, file2) {
                 var p1 = file1.history[0],
@@ -29,12 +31,13 @@ gulp.task('concatJs', function() {
                 return value1 < value2;
             }
         }))
+        .pipe(addsrc('src/js/other/**/*.js'))
         .pipe(concat('bundle.js'))
         .pipe(gulp.dest('dist'));
 });
 gulp.task('concatCss', function(){
     "use strict";
-    return gulp.src('src/js/**/*.css')
+    return gulp.src( 'src/js/**/*.css')
         .pipe(concat('styles.css'))
         .pipe(gulp.dest('dist'));
 });

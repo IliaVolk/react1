@@ -7,7 +7,11 @@ class AddUserComponent extends React.Component{
         super();
         this.onAddUser = this.onAddUser.bind(this);
     }
-
+    static get propTypes(){
+        return{
+            onAddUser: React.PropTypes.func
+        };
+    }
     onAddUser(){
         console.log("AddUserComponent.onAddUser")
         var inputNode = ReactDOM.findDOMNode(this.refs.input);

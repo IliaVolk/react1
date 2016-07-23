@@ -1,13 +1,34 @@
 /**
  * Created by user on 23.07.2016.
  */
+var nextId = function () {
+    var id = 0;
+    return function () {
+        return id++
+    }
+}();
+
+class User{
+    constructor(name){
+        this.name = name;
+        this.id = nextId();
+        console.log(`creating User: ${name}`);
+    }
+}
+/**
+ * Created by user on 23.07.2016.
+ */
 
 class AddUserComponent extends React.Component{
     constructor(){
         super();
         this.onAddUser = this.onAddUser.bind(this);
     }
-
+    static get propTypes(){
+        return{
+            onAddUser: React.PropTypes.func
+        };
+    }
     onAddUser(){
         console.log("AddUserComponent.onAddUser")
         var inputNode = ReactDOM.findDOMNode(this.refs.input);
@@ -31,12 +52,19 @@ class AddUserComponent extends React.Component{
 /**
  * Created by user on 23.07.2016.
  */
+
+
 class UserComponent extends React.Component{
 
     constructor() {
         super();
         this.onRemoveUser = this.onRemoveUser.bind(this);
-
+    }
+    static get propTypes(){
+        return {
+            user: React.PropTypes.instanceOf(User),
+            onRemoveUser: React.PropTypes.func
+        }
     }
     componentDidMount() {
         $(ReactDOM.findDOMNode(this)).css("display", "none").slideDown();
@@ -44,10 +72,11 @@ class UserComponent extends React.Component{
 
     onRemoveUser(){
         $(ReactDOM.findDOMNode(this)).slideUp(()=>{
-            this.props.onRemoveUser(this.props.user);
+            this.props.onRemoveUser(this);
             console.log("onRemoveUser");
         });
     }
+    shouldComponentUpdate(){return false;}
     render() {
     return (
         <div className="list-component row">
@@ -62,44 +91,34 @@ class UserComponent extends React.Component{
  */
 
 "use strict";
-var removeUserFromArray = (array, user)=> {
-    "use strict";
-    for (let i = 0; i < array.length; i++) {
 
-        if (array[i].id === user.id) {
-            array.splice(i, 1);
-            return;
-        }
-    }
-};
-var nextId = function () {
-    var id = 0;
-    return function () {
-        return id++
-    }
-}();
 
 class UserList extends React.Component {
     constructor() {
         super();
-
         this.userToUserComponent = this.userToUserComponent.bind(this);
         this.onAddUser = this.onAddUser.bind(this);
         this.onRemoveUser = this.onRemoveUser.bind(this);
         this.state = this.getInitialState();
     }
-
+    removeUserComponentFromArray(userComponent) {
+        "use strict";
+        let array = this.state.userComponents;
+        for (let i = 0; i < array.length; i++) {
+            if (array[i].props.user.id === userComponent.props.user.id) {
+                array.splice(i, 1);
+                return;
+            }
+        }
+    };
     getInitialState() {
         console.log("UserList.getInitialState");
-        var users = [{
-            id: nextId(),
-            name: "Василий"
-        }, {
-            id: nextId(),
-            name: "Алексей"
-        }];
+        var users = [
+            new User("Василий"),
+            new User("Алексей")
+        ];
         return {
-            users: users
+            userComponents: users.map(this.userToUserComponent)
         };
     }
 
@@ -118,25 +137,23 @@ class UserList extends React.Component {
      */
     onAddUser(name) {
         console.log(`onAddUser(${name})`);
-        this.state.users.push({name: name, id: nextId()});
+        this.state.userComponents.push(this.userToUserComponent(new User(name)));
         this.forceUpdate();
     }
 
-    onRemoveUser(user) {
-        console.log(`onRemoveUser(${user}`);
-        removeUserFromArray(this.state.users, user);
+    onRemoveUser(userComponent) {
+        console.log(`onRemoveUser(${userComponent}`);
+        this.removeUserComponentFromArray(userComponent);
         this.forceUpdate();
     }
 
     render() {
         console.log("UserList.render()");
-        var userComponents = this.state.users.map(this.userToUserComponent);
         return (
             <div className="container user-list">
                 <h3 className="list-component row">User list:</h3>
-
                 <AddUserComponent onAddUser={this.onAddUser}/>
-                {userComponents}
+                {this.state.userComponents}
             </div>
         )
     }
